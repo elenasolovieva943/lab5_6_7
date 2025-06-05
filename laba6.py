@@ -11,25 +11,29 @@ def F_iterative(n):
     if n == 0 or n == 1:
         return 1
     F0, F1 = 1, 1
+    fact_i = 1
     for i in range(2, n + 1):
+        fact_i *= i
+        fact_2i = 1
+        for j in range(2, 2 * i + 1):
+            fact_2i *= j
         sign = -1 if i % 2 else 1
-        Fi = sign * (F1 / math.factorial(i) + F0 / math.factorial(2 * i))
+        Fi = sign * (F1 / fact_i + F0 / fact_2i)
         F0, F1 = F1, Fi
     return F1
 
 def compare_methods(n_max):
-    print(f"{'n':<3} | {'Итерационное':<22} | {'Рекурсия':<32} | {'Время итерации':<19} | {'Время рекурсии':<19}")
-    print("-" * 110)
+    print(f"{'n':<3} | {'Время итерации':<23} | {'Время рекурсии':<23}")
     for n in range(n_max + 1):
-            start = time.perf_counter()
-            fi = F_iterative(n)
-            t1 = (time.perf_counter() - start) * 1000
+        start = time.perf_counter()
+        F_iterative(n)
+        t1 = (time.perf_counter() - start) * 1000
 
-            start = time.perf_counter()
-            fr = F_recursive(n)
-            t2 = (time.perf_counter() - start) * 1000
+        start = time.perf_counter()
+        F_recursive(n)
+        t2 = (time.perf_counter() - start) * 1000
 
-            print(f"{n:<3} | {fi:<22.14e} | {fr:<32.14e} | {t1:<19.5f} | {t2:<19.5f}")
+        print(f"{n:<3} | {t1:<23.5f} | {t2:<23.5f}")
 
 if __name__ == "__main__":
     compare_methods(15)
