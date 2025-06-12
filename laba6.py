@@ -10,16 +10,19 @@ def F_recursive(n):
 def F_iterative(n):
     if n == 0 or n == 1:
         return 1
+
     F0, F1 = 1, 1
-    fact_i = 1
+    fact_n = 1
+    fact_2n = 2
+
     for i in range(2, n + 1):
-        fact_i *= i
-        fact_2i = 1
-        for j in range(2, 2 * i + 1):
-            fact_2i *= j
+        fact_n *= i
+        fact_2n *= (2 * i - 1) * (2 * i)
+
         sign = -1 if i % 2 else 1
-        Fi = sign * (F1 / fact_i + F0 / fact_2i)
+        Fi = sign * (F1 / fact_n + F0 / fact_2n)
         F0, F1 = F1, Fi
+
     return F1
 
 def compare_methods(n_max):
