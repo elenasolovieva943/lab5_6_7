@@ -1,6 +1,7 @@
+#Конвейер сборки состоит из 10 технологических мест. На 4 из них требуется силовая подготовка (мужчины).
+#Конвейер должен работать в 2 смены. Сформировать все возможные варианты рабочего расписания, если в цехе работает 20 рабочих: 12 женщин и 8 мужчин.
 from itertools import combinations
 
-# Список всех рабочих: 8 мужчин и 12 женщин
 all_workers = [f"M{i}" for i in range(1, 9)] + [f"W{j}" for j in range(1, 13)]
 men = [w for w in all_workers if w.startswith("M")]
 women = [w for w in all_workers if w.startswith("W")]
