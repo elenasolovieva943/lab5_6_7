@@ -55,7 +55,7 @@ class RightTriangle:
 class TriangleApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Прямоугольные треугольники")
+        self.root.title("Лаба 8")
         self.canvas = tk.Canvas(root, width=600, height=600, bg="white")
         self.canvas.pack()
 
