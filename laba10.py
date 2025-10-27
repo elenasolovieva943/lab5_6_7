@@ -1,161 +1,168 @@
 import tkinter as tk
 from tkinter import messagebox
 
-PLAYER = "X"
-BOT = "O"
-
+Player = "X"
+Bot = "O"
 
 class TicTacToe:
     def __init__(self, root):
         self.root = root
         self.root.title("Крестики-нолики")
-        self.root.configure(bg='white')
         self.root.resizable(False, False)
+        self.root.configure(bg="#e0f7fa")
+
+        self.status_label = tk.Label(
+            self.root,
+            text="Ваш ход (X)",
+            font=("Arial", 18, "bold"),
+            bg="#e0f7fa",
+            fg="#01579b",
+        )
+        self.status_label.grid(row=0, column=0, columnspan=3, pady=(10, 5))
 
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
         self.board = [["" for _ in range(3)] for _ in range(3)]
 
-        self.create_status()
         self.create_buttons()
-
         self.player_turn = True
-        self.winning_line = []
-
-    def create_status(self):
-        self.status_label = tk.Label(self.root, text="Ваш ход (X)",
-                                     font=("Arial", 14), bg='white')
-        self.status_label.pack(pady=10)
 
     def create_buttons(self):
-        game_frame = tk.Frame(self.root, bg='white')
-        game_frame.pack(pady=10)
-
         for i in range(3):
             for j in range(3):
-                btn = tk.Button(game_frame, text="", font=("Arial", 32),
-                                width=3, height=1, bg='#f0f0f0',
-                                command=lambda x=i, y=j: self.player_move(x, y))
-                btn.grid(row=i, column=j, padx=2, pady=2)
+                btn = tk.Button(
+                    self.root,
+                    text="",
+                    font=("Arial", 40, "bold"),
+                    width=5,
+                    height=2,
+                    bg="#ffffff",
+                    activebackground="#b3e5fc",
+                    relief="raised",
+                    command=lambda x=i, y=j: self.player_move(x, y),
+                )
+                btn.grid(row=i + 1, column=j, padx=5, pady=5)
+                btn.bind("<Enter>", lambda e, b=btn: b.config(bg="#bbdefb"))
+                btn.bind("<Leave>", lambda e, b=btn: b.config(bg="#ffffff"))
                 self.buttons[i][j] = btn
 
     def player_move(self, x, y):
-        if not self.player_turn:
+        if not self.player_turn or self.board[x][y] != "":
             return
-        if self.board[x][y] == "":
-            self.buttons[x][y].config(text=PLAYER, fg='blue', disabledforeground='blue')
-            self.buttons[x][y].config(state="disabled")
-            self.board[x][y] = PLAYER
+        self.make_move(x, y, Player, color="#1976d2")
+        if self.check_winner(Player):
+            self.status_label.config(text="Вы выиграли!", fg="#2e7d32")
+            messagebox.showinfo("Игра окончена", "Поздравляем, вы выиграли!")
+            self.root.after(1000, self.reset)
+            return
+        elif self.is_draw():
+            self.status_label.config(text="Ничья!", fg="#616161")
+            messagebox.showinfo("Игра окончена", "Ничья!")
+            self.root.after(1000, self.reset)
+            return
 
-            if self.check_winner(self.board, PLAYER):
-                self.highlight_winning_line()
-                messagebox.showinfo("Игра окончена", "Вы выиграли!")
-                self.reset()
-                return
-            elif self.is_draw(self.board):
-                messagebox.showinfo("Игра окончена", "Ничья!")
-                self.reset()
-                return
-            else:
-                self.player_turn = False
-                self.status_label.config(text="Ход бота...")
-                self.root.after(500, self.bot_move)
+        self.player_turn = False
+        self.status_label.config(text="Ход бота (O)", fg="#b71c1c")
+        self.root.after(400, self.bot_move)
 
     def bot_move(self):
-        move = self.find_best_move(self.board)
-        if move:
-            x, y = move
-            self.buttons[x][y].config(text=BOT, fg='red', disabledforeground='red')
-            self.buttons[x][y].config(state="disabled")
-            self.board[x][y] = BOT
-
-            if self.check_winner(self.board, BOT):
-                self.highlight_winning_line()
-                messagebox.showinfo("Игра окончена", "Бот выиграл!")
-                self.reset()
-                return
-            elif self.is_draw(self.board):
-                messagebox.showinfo("Игра окончена", "Ничья!")
-                self.reset()
-                return
-
-        self.player_turn = True
-        self.status_label.config(text="Ваш ход (X)")
-
-    def check_winner(self, board, player):
-        for i in range(3):
-            if all(board[i][j] == player for j in range(3)):
-                self.winning_line = [(i, j) for j in range(3)]
-                return True
-            if all(board[j][i] == player for j in range(3)):
-                self.winning_line = [(j, i) for j in range(3)]
-                return True
-        if all(board[i][i] == player for i in range(3)):
-            self.winning_line = [(i, i) for i in range(3)]
-            return True
-        if all(board[i][2 - i] == player for i in range(3)):
-            self.winning_line = [(i, 2 - i) for i in range(3)]
-            return True
-        return False
-
-    def highlight_winning_line(self):
-        for i, j in self.winning_line:
-            self.buttons[i][j].config(bg='lightgreen')
-
-    def is_draw(self, board):
-        return all(board[i][j] != "" for i in range(3) for j in range(3))
-
-    def find_best_move(self, board):
-        best_val = -float('inf')
+        best_score = -float("inf")
         best_move = None
 
         for i in range(3):
             for j in range(3):
-                if board[i][j] == "":
-                    board[i][j] = BOT
-                    move_val = self.minimax(board, 0, False)
-                    board[i][j] = ""
-                    if move_val > best_val:
-                        best_val = move_val
+                if self.board[i][j] == "":
+                    self.board[i][j] = Bot
+                    score = self.minimax(self.board, 0, False)
+                    self.board[i][j] = ""
+                    if score > best_score:
+                        best_score = score
                         best_move = (i, j)
-        return best_move
 
-    def minimax(self, board, depth, is_max):
-        if self.check_winner(board, BOT):
+        if best_move:
+            x, y = best_move
+            self.make_move(x, y, Bot, color="#d32f2f")
+            if self.check_winner(Bot):
+                self.status_label.config(text="Бот выиграл!", fg="#c62828")
+                messagebox.showinfo("Игра окончена", "Бот выиграл!")
+                self.root.after(1000, self.reset)
+                return
+            elif self.is_draw():
+                self.status_label.config(text="Ничья!", fg="#616161")
+                messagebox.showinfo("Игра окончена", "Ничья!")
+                self.root.after(1000, self.reset)
+                return
+
+        self.player_turn = True
+        self.status_label.config(text="Ваш ход (X)", fg="#01579b")
+
+    def minimax(self, board, depth, is_maximizing):
+        if self.check_winner_board(board, Bot):
             return 10 - depth
-        if self.check_winner(board, PLAYER):
+        if self.check_winner_board(board, Player):
             return depth - 10
-        if self.is_draw(board):
+        if self.is_draw_board(board):
             return 0
 
-        if is_max:
-            best = -float('inf')
+        if is_maximizing:
+            best_score = -float("inf")
             for i in range(3):
                 for j in range(3):
                     if board[i][j] == "":
-                        board[i][j] = BOT
-                        val = self.minimax(board, depth + 1, False)
+                        board[i][j] = Bot
+                        score = self.minimax(board, depth + 1, False)
                         board[i][j] = ""
-                        best = max(best, val)
-            return best
+                        best_score = max(score, best_score)
+            return best_score
         else:
-            best = float('inf')
+            best_score = float("inf")
             for i in range(3):
                 for j in range(3):
                     if board[i][j] == "":
-                        board[i][j] = PLAYER
-                        val = self.minimax(board, depth + 1, True)
+                        board[i][j] = Player
+                        score = self.minimax(board, depth + 1, True)
                         board[i][j] = ""
-                        best = min(best, val)
-            return best
+                        best_score = min(score, best_score)
+            return best_score
+
+    def check_winner_board(self, board, player):
+        for i in range(3):
+            if all(board[i][j] == player for j in range(3)):
+                return True
+        for j in range(3):
+            if all(board[i][j] == player for i in range(3)):
+                return True
+        if all(board[i][i] == player for i in range(3)):
+            return True
+        if all(board[i][2 - i] == player for i in range(3)):
+            return True
+        return False
+
+    def make_move(self, x, y, player, color):
+        self.board[x][y] = player
+        self.buttons[x][y].config(
+            text=player,
+            state="disabled",
+            disabledforeground=color,
+            relief="sunken",
+            bg="#e3f2fd",
+        )
+
+    def check_winner(self, player):
+        return self.check_winner_board(self.board, player)
+
+    def is_draw(self):
+        return all(self.board[i][j] != "" for i in range(3) for j in range(3))
+
+    def is_draw_board(self, board):
+        return all(board[i][j] != "" for i in range(3) for j in range(3))
 
     def reset(self):
         self.board = [["" for _ in range(3)] for _ in range(3)]
         for i in range(3):
             for j in range(3):
-                self.buttons[i][j].config(text="", state="normal", bg='#f0f0f0')
+                self.buttons[i][j].config(text="", state="normal", bg="#ffffff", relief="raised")
         self.player_turn = True
-        self.status_label.config(text="Ваш ход (X)")
-        self.winning_line = []
+        self.status_label.config(text="Ваш ход (X)", fg="#01579b")
 
 
 if __name__ == "__main__":

@@ -21,7 +21,6 @@ class RightTriangle:
     def __init__(self, vertices, color="lightblue"):
         self.vertices = vertices
         self.pivot = vertices[0]
-        self.base_length = math.dist(vertices[0], vertices[1])
         self.color = color
 
     def get_points(self):
@@ -37,7 +36,6 @@ class RightTriangle:
             return new_x, new_y
         self.vertices[1] = rotate_point(*self.vertices[1])
         self.vertices[2] = rotate_point(*self.vertices[2])
-        self.base_length = math.dist(self.pivot, self.vertices[1])
 
     def intersects(self, other):
         edges1 = [(self.vertices[i], self.vertices[(i+1)%3]) for i in range(3)]
